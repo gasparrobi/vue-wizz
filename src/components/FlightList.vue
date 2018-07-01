@@ -96,8 +96,10 @@ export default {
   width: 100%;
   margin-bottom: 15px;
   background: #fff;
-  padding: 10px;
-  box-shadow: 1px 1px 13px 3px rgba(0, 0, 0, 0.1);
+  padding: 10px 20px;
+  box-shadow: 1px 1px 13px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
 }
 
 .flight-item {

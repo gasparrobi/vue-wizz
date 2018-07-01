@@ -86,6 +86,13 @@
 
 		<div class="right" v-if="outBoundFlights.length > 0" >
 
+      <flight-list-header
+        :origin="originSelected"
+        :destination="destinationSelected"
+        :flightDate="departureDate"
+      >
+      </flight-list-header>
+
 			<flight-list 
 			:flights="outBoundFlights"
       :flightType="'outBoundFlight'"
@@ -105,6 +112,7 @@
 <script>
 import FlightService from "../services/flightService.js";
 import FlightList from "./FlightList.vue";
+import FlightListHeader from "./FlightListHeader.vue";
 import moment from "moment";
 
 export default {
@@ -115,7 +123,8 @@ export default {
   },
 
   components: {
-    "flight-list": FlightList
+    "flight-list": FlightList,
+    "flight-list-header": FlightListHeader
   },
 
   beforeCreate() {
