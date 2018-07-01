@@ -23,8 +23,6 @@
 			</div>
 
 
-			<button v-on:click="$emit('ticket-selected', flights[0])">send message</button>
-
     </div>
 </template>
 
@@ -37,7 +35,8 @@ const plusImg = require("../assets/plus.png");
 export default {
   name: "FlightList",
   props: {
-    flights: Array
+    flights: Array,
+    flightType: String
   },
 
   created() {
@@ -59,6 +58,10 @@ export default {
     selectTicket(flight, ticket) {
       this.selectedFlight = flight;
       this.selectedTicket = ticket;
+      this.$emit(this.flightType, {
+        selectedFlight: this.selectedFlight,
+        selectedTicket: this.selectedTicket
+      });
     },
 
     ticketIcon(ticketType) {

@@ -88,8 +88,9 @@
 
 			<flight-list 
 			:flights="outBoundFlights"
+      :flightType="'outBoundFlight'"
 			v-model="selectedOutboundFlight"
-			v-on:ticket-selected="outboundFlightSelected"
+			v-on:outBoundFlight="outboundFlightSelected"
 			>
 
 		</flight-list>
@@ -227,8 +228,10 @@ export default {
         JSON.parse(localStorage.getItem("destinationSelected")) || null;
     },
 
-    outboundFlightSelected(flight) {
-      console.log(flight);
+    outboundFlightSelected(message) {
+      console.log("outbound flight selected:");
+      console.log(message.selectedFlight);
+      console.log(message.selectedTicket);
     },
 
     validateForm() {
