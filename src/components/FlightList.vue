@@ -8,7 +8,10 @@
 					<span class="flight-time">{{flight.departure | time}} <i class="fas fa-plane"></i>{{flight.arrival | time}}</span>
 				</div>
 
-				<div v-for="ticket in flight.fares" v-bind:key="ticket.fareSellKey" class="flight-item" @click="selectTicket(flight, ticket)">
+				<div v-for="ticket in flight.fares" v-bind:key="ticket.fareSellKey" 
+            class="flight-item" 
+            @click="selectTicket(flight, ticket)"
+            v-bind:class="{ inactive: flight.remainingTickets === 0 }">
 					<img v-bind:src="ticketIcon(ticket.bundle)" alt='' width="30">
 					<span class="ticket-bundle">{{ticket.bundle}}</span>
 					<span class="ticket-price"> {{ticket.price}}$</span>
@@ -16,12 +19,6 @@
 
 
 			</div>
-
-			<div v-if="selectedTicket !== null" class="selected-ticket">
-				selected flight: {{selectedFlight.departure | date}} {{selectedFlight.departure | time}}
-				selected ticket: {{selectedTicket.bundle}} {{selectedTicket.price}}
-			</div>
-
 
     </div>
 </template>
@@ -56,11 +53,14 @@ export default {
 
   methods: {
     selectTicket(flight, ticket) {
+      if (flight.remainingTickets === 0) {
+        return;
+      }
       this.selectedFlight = flight;
       this.selectedTicket = ticket;
       this.$emit(this.flightType, {
         selectedFlight: this.selectedFlight,
-        selectedTicket: this.selectedTicket
+        selectedTicket: this.selectedTicket.fareSellKey
       });
     },
 
@@ -99,7 +99,7 @@ export default {
   padding: 10px 20px;
   box-shadow: 1px 1px 13px 3px rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 3px;
+  /* border-radius: 3px; */
 }
 
 .flight-item {
@@ -118,9 +118,10 @@ export default {
 .flight-item:not(:first-of-type) {
   border-radius: 3px;
   cursor: pointer;
+  transition: all 200ms;
 }
 
-.flight-item:nth-of-type(2) {
+/* .flight-item:nth-of-type(2) {
   border: 1px solid rgba(198, 0, 126, 0.5);
 }
 
@@ -134,6 +135,10 @@ export default {
 
 .flight-item:nth-of-type(4) {
   border: 1px solid rgba(216, 203, 26, 0.5);
+} */
+
+.flight-item:not(:first-of-type):hover {
+  background: #0f0c2928;
 }
 
 .date-time-wrapper {
@@ -155,5 +160,11 @@ export default {
 
 .flight-time {
   font-size: 18px;
+}
+
+.inactive {
+  opacity: 0.3;
+  filter: grayscale(100%);
+  cursor: not-allowed !important;
 }
 </style>

@@ -3,104 +3,127 @@
 
 		<div class="left">
 
-			<div class="select-wrapper">
-				<h5>Origin</h5>
-				<v-select 
-					class="vue-select"
-					id="origin-v-select" 
-					v-bind:class="{error_outline: errors.originSelectedError}"
-					label="shortName" 
-					v-model="originSelected"
-					:options="flightData"
-					:searchable=false
-					:filterable=false>
-				</v-select>
-				<span class="error-span" v-if="errors.originSelectedError">Please select origin city</span>
-			</div>
-			
-			<div class="select-wrapper">
-				<h5>Destination</h5>
-				<v-select 
-					class="vue-select"
-					id="dest-v-select"
-					v-bind:class="{error_outline: errors.destinationSelectedError}"
-					:disabled="destinationDisabled" 
-					label="shortName" 
-					v-model="destinationSelected" 
-					:options="destinationCities"
-					:searchable=false
-					:filterable=false>
-				</v-select>
-				<span class="error-span" v-if="errors.destinationSelectedError">Please select destination city</span>
-			</div>
-		
-			<div class="datepicker-section">
-				<!-- DEPARTURE DATEPICKER -->
-				<div class="datepicker-item">
+      <div class="flight-search">
+          <div class="select-wrapper">
+          <h5>Origin</h5>
+          <v-select 
+            class="vue-select"
+            id="origin-v-select" 
+            v-bind:class="{error_outline: errors.originSelectedError}"
+            label="shortName" 
+            v-model="originSelected"
+            :options="flightData"
+            :searchable=false
+            :filterable=false>
+          </v-select>
+          <span class="error-span" v-if="errors.originSelectedError">Please select origin city</span>
+        </div>
+        
+        <div class="select-wrapper">
+          <h5>Destination</h5>
+          <v-select 
+            class="vue-select"
+            id="dest-v-select"
+            v-bind:class="{error_outline: errors.destinationSelectedError}"
+            :disabled="destinationDisabled" 
+            label="shortName" 
+            v-model="destinationSelected" 
+            :options="destinationCities"
+            :searchable=false
+            :filterable=false>
+          </v-select>
+          <span class="error-span" v-if="errors.destinationSelectedError">Please select destination city</span>
+        </div>
+      
+        <div class="datepicker-section">
+          <!-- DEPARTURE DATEPICKER -->
+          <div class="datepicker-item">
 
-					<h5>Departure</h5>
-					<datepicker 
-						class='vue-datepicker'
-						format="yyyy-MM-dd"
-						:placeholder="today"
-						:monday-first=true
-						:disabledDates="datePickerConfig.disabledDates"
-						v-model="departureDate"
-						:clear-button=true
-					>
-						<span slot="afterDateInput" class="animated-placeholder"></span>
-					</datepicker>
-					<span class="error-span" v-if="errors.departureDateError">Date required</span>
-				</div>
-				
-				<!-- RETURN DATEPICKER -->
-				<div class="datepicker-item">
-					<h5>Return</h5>
-					<datepicker 
-						class='vue-datepicker'
-						:disabled="returnDateDisabled"
-						format="yyyy-MM-dd"
-						:placeholder="returnPlaceholder"
-						monday-first
-						:disabledDates="returnDateFrom"
-						v-model="returnDate"
-						clear-button
-					>
-						<span slot="afterDateInput" class="animated-placeholder"></span>
-					</datepicker>
-				</div>
-				
-			</div>
+            <h5>Departure</h5>
+            <datepicker 
+              class='vue-datepicker'
+              format="yyyy-MM-dd"
+              :placeholder="today"
+              :monday-first=true
+              :disabledDates="datePickerConfig.disabledDates"
+              v-model="departureDate"
+              :clear-button=true
+            >
+              <span slot="afterDateInput" class="animated-placeholder"></span>
+            </datepicker>
+            <span class="error-span" v-if="errors.departureDateError">Date required</span>
+          </div>
+          
+          <!-- RETURN DATEPICKER -->
+          <div class="datepicker-item">
+            <h5>Return</h5>
+            <datepicker 
+              class='vue-datepicker'
+              :disabled="returnDateDisabled"
+              format="yyyy-MM-dd"
+              :placeholder="returnPlaceholder"
+              monday-first
+              :disabledDates="returnDateFromValue"
+              v-model="returnDate"
+              clear-button
+            >
+              <span slot="afterDateInput" class="animated-placeholder"></span>
+            </datepicker>
+          </div>
+          
+        </div>
+      
+        <input
+          id="search-submit" 
+          type="submit"
+          @click="submitForm"
+          :value="searchButtonTitle"
+          v-bind:class="{loading: loading}"
+        />
+      </div>
 
-			
+      <flight-summary v-if="selectedOutboundFlight !== null"
+        :outBoundFlight="selectedOutboundFlight"
+        :outBoundTicketId="selectedOutboundTicketId"
+        :returnFlight="selectedReturnFlight"
+        :returnTicketId="selectedReturnTicketId"
+        :originIata="originSelected.iata"
+        :destinationIata="destinationSelected.iata"
+        />
+      
+    
+		</div> <!-- LEFT END -->
 
-			<input
-				id="search-submit" 
-				type="submit"
-				@click="submitForm"
-				:value="searchTitle"
-				v-bind:class="{loading: loading}"
-			/>
-
-		</div>
-
-		<div class="right" v-if="outBoundFlights.length > 0" >
+		<div class="right" v-if="outBoundFlights.length > 0 && resultsActive" >
 
       <flight-list-header
         :origin="originSelected"
         :destination="destinationSelected"
         :flightDate="departureDate"
-      >
-      </flight-list-header>
+      />
 
 			<flight-list 
 			:flights="outBoundFlights"
       :flightType="'outBoundFlight'"
 			v-model="selectedOutboundFlight"
 			v-on:outBoundFlight="outboundFlightSelected"
-			>
+			/>
 
-		</flight-list>
+      <div v-if="returnFlights.length > 0 && resultsActive">
+        <flight-list-header
+          :origin="destinationSelected"
+          :destination="originSelected"
+          :flightDate="returnDate"
+        />
+
+        <flight-list 
+          :flights="returnFlights"
+          :flightType="'returnFlight'"
+          v-model="selectedReturnFlight"
+          v-on:returnFlight="returnFlightSelected"
+        />
+      </div>
+      
 
 		</div>
 
@@ -113,18 +136,18 @@
 import FlightService from "../services/flightService.js";
 import FlightList from "./FlightList.vue";
 import FlightListHeader from "./FlightListHeader.vue";
+import FlightSummary from "./FlightSummary.vue";
 import moment from "moment";
 
 export default {
   name: "FlightSelector",
   flightService: null,
-  props: {
-    msg: String
-  },
+  props: {},
 
   components: {
     "flight-list": FlightList,
-    "flight-list-header": FlightListHeader
+    "flight-list-header": FlightListHeader,
+    "flight-summary": FlightSummary
   },
 
   beforeCreate() {
@@ -134,8 +157,6 @@ export default {
   async mounted() {
     const response = await this.flightService.getFlights();
     this.flightData = response.data;
-    // getting saved data from earlier search
-    // this.getDataFromLocalStorage();
   },
 
   data() {
@@ -147,10 +168,8 @@ export default {
         departureDateError: false
       },
       flightData: [],
-      originSelected:
-        JSON.parse(localStorage.getItem("originSelected")) || null,
-      destinationSelected:
-        JSON.parse(localStorage.getItem("destinationSelected")) || null,
+      originSelected: JSON.parse(localStorage.getItem("originSelected")) || null,
+      destinationSelected: JSON.parse(localStorage.getItem("destinationSelected")) || null,
       departureDate: null,
       returnDate: null,
       datePickerConfig: {
@@ -159,38 +178,36 @@ export default {
         }
       },
       loading: false,
+      resultsActive: false,
 
       //for flight results
       outBoundFlights: [],
       returnFlights: [],
 
       selectedOutboundFlight: null,
-      selectedReturnFlight: null
+      selectedReturnFlight: null,
+      selectedOutboundTicketId: null,
+      selectedReturnTicketId: null
     };
   },
 
   watch: {
     originSelected(val) {
-      localStorage.setItem(
-        "originSelected",
-        JSON.stringify(this.originSelected)
-      );
+      localStorage.setItem("originSelected", JSON.stringify(this.originSelected));
       if (val === null) {
         this.destinationSelected = null;
       } else {
         this.errors.originSelectedError = false;
       }
+      this.resultsActive = false;
     },
 
     destinationSelected(val) {
-      localStorage.setItem(
-        "destinationSelected",
-        JSON.stringify(this.destinationSelected)
-      );
-      console.log("destination selected?: " + val === null);
+      localStorage.setItem("destinationSelected", JSON.stringify(this.destinationSelected));
       if (val !== null) {
         this.errors.destinationSelectedError = false;
       }
+      this.resultsActive = false;
     },
 
     departureDate(val) {
@@ -199,6 +216,11 @@ export default {
       } else {
         this.errors.departureDateError = false;
       }
+      this.resultsActive = false;
+    },
+
+    returnDate(val) {
+      this.resultsActive = false;
     }
   },
 
@@ -208,57 +230,50 @@ export default {
       this.errors.destinationSelectedError = this.destinationSelected === null;
       this.errors.departureDateError = this.departureDate === null;
 
-      if (!this.validateForm() || this.loading) {
-        return;
-      }
+      if (!this.validateForm() || this.loading) return;
       this.loading = true;
+      this.resultsActive = true;
 
-      this.outBoundFlights = await this.flightService.searchFlights({
-        origin: this.originSelected.iata,
-        destination: this.destinationSelected.iata,
-        date: moment(this.departureDate).format("YYYY-MM-DD")
-      });
+      try {
+        this.outBoundFlights = await this.flightService.searchFlights(
+          this.originSelected.iata,
+          this.destinationSelected.iata,
+          moment(this.departureDate).format("YYYY-MM-DD")
+        );
 
-      if (this.returnDate !== null) {
-        this.returnFlights = await this.flightService.searchFlights({
-          origin: this.destinationSelected.iata,
-          destination: this.originSelected.iata,
-          date: moment(this.returnDate).format("YYYY-MM-DD")
-        });
+        if (this.returnDate !== null) {
+          this.returnFlights = await this.flightService.searchFlights(
+            this.destinationSelected.iata,
+            this.originSelected.iata,
+            moment(this.returnDate).format("YYYY-MM-DD")
+          );
+        }
+      } catch (error) {
+        this.$emit("ERROR", "Sorry, we were unable to get results, please try again later");
       }
 
       this.loading = false;
     },
 
-    getDataFromLocalStorage() {
-      this.originSelected =
-        JSON.parse(localStorage.getItem("originSelected")) || null;
-      this.destinationSelected =
-        JSON.parse(localStorage.getItem("destinationSelected")) || null;
+    outboundFlightSelected(message) {
+      this.selectedOutboundFlight = message.selectedFlight;
+      this.selectedOutboundTicketId = message.selectedTicket;
     },
 
-    outboundFlightSelected(message) {
-      console.log("outbound flight selected:");
-      console.log(message.selectedFlight);
-      console.log(message.selectedTicket);
+    returnFlightSelected(message) {
+      this.selectedReturnFlight = message.selectedFlight;
+      this.selectedReturnTicketId = message.selectedTicket;
     },
 
     validateForm() {
-      return (
-        this.originSelected !== null &&
-        this.destinationSelected !== null &&
-        this.departureDate !== null
-      );
+      return this.originSelected !== null && this.destinationSelected !== null && this.departureDate !== null;
     }
   },
 
   computed: {
     originFiltered() {
-      // if(this.originSelected)
       return this.flightData.filter(flight => {
-        return flight.shortName
-          .toLowerCase()
-          .startsWith(this.originSelected === null ? "" : this.originSelected);
+        return flight.shortName.toLowerCase().startsWith(this.originSelected === null ? "" : this.originSelected);
       });
     },
 
@@ -274,7 +289,7 @@ export default {
       return this.originSelected === null ? true : false;
     },
 
-    returnDateFrom() {
+    returnDateFromValue() {
       if (null !== this.departureDate) {
         return {
           to: new Date(this.departureDate.getTime() + 86400000)
@@ -300,14 +315,13 @@ export default {
             .format("YYYY-MM-DD");
     },
 
-    searchTitle() {
-      return this.loading ? "Loading..." : "Search";
+    searchButtonTitle() {
+      return this.loading ? "Searching..." : "Search";
     }
   }
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 h3 {
   margin: 40px 0 0;
@@ -356,8 +370,15 @@ a {
 
 .left {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   min-width: 320px;
+  width: 320px;
+}
+
+.flight-search {
+  display: flex;
+  justify-content: center;
+  width: 100%;
   max-height: 415px;
   padding: 20px;
   flex-direction: column;
@@ -414,7 +435,7 @@ h5 {
   padding-right: 20px;
   animation: section-fade-in 500ms forwards;
   overflow-y: scroll;
-  max-height: calc(100vh - 80px);
+  max-height: calc(100vh - 20px);
 }
 
 @keyframes section-fade-in {

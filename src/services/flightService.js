@@ -11,16 +11,10 @@ export default class FlightService {
     return stations;
   }
 
-  async searchFlights(searchData) {
-    // const searchUrl = `${this.searchFlightsApi}?departureStation=${
-    //   searchData.origin
-    // }&arrivalStation=${searchData.destination}&date=${searchData.date}`;
+  async searchFlights(origin, destination, date) {
+    const searchUrl = `${this.searchFlightsApi}?departureStation=${origin}&arrivalStation=${destination}&date=${date}`;
 
-    const fakeUrl =
-      "https://mock-air.herokuapp.com/search?departureStation=BUD&arrivalStation=LTN&date=2018-04-24";
-
-    // const flights = await axios.get(searchUrl);
-    const flights = await axios.get(fakeUrl);
+    const flights = await axios.get(searchUrl);
 
     return flights.data;
   }

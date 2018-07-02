@@ -1,6 +1,9 @@
 <template>
   <div id="app">
-    <FlightSelector msg="Hello Wizz"/>
+    <span v-if="serviceError !== null" id="error">{{ serviceError }}</span>
+    <FlightSelector 
+      v-on:ERROR="handleError"
+    />
   </div>
 </template>
 
@@ -11,6 +14,20 @@ export default {
   name: "app",
   components: {
     FlightSelector
+  },
+  data() {
+    return {
+      serviceError: null
+    };
+  },
+
+  methods: {
+    handleError(message) {
+      this.serviceError = message;
+      setTimeout(() => {
+        this.serviceError = null;
+      }, 5000);
+    }
   }
 };
 </script>
@@ -29,6 +46,15 @@ body {
   min-width: 320px;
   width: 100%;
   padding: 20px;
+  max-height: 100vh;
+}
+
+#error {
+  position: absolute;
+  top: 440px;
+  font-size: 12px;
+  color: red;
+  font-weight: 500;
 }
 
 #app {
@@ -37,7 +63,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
   display: flex;
   color: #2c3e50;
-  margin-top: 60px;
   width: 100%;
   max-width: 1000px;
 }
