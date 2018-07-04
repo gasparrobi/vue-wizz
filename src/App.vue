@@ -136,4 +136,27 @@ body {
 .error_outline {
   border: 1px solid red;
 }
+
+.origin-marker::before {
+  color: #fafafa;
+  font-family: "Font Awesome 5 Free";
+  font-size: 12px;
+  font-weight: 700;
+  content: "\f5b0";
+  padding: 6px;
+  /* background: #c6007e; */
+  background: #c6007db0;
+  border-radius: 3px;
+}
+
+.destination-marker::before {
+  color: #fafafa;
+  font-family: "Font Awesome 5 Free";
+  font-size: 12px;
+  font-weight: 700;
+  content: "\f5af";
+  padding: 6px;
+  background: #c6007db0;
+  border-radius: 3px;
+}
 </style>

@@ -65,9 +65,7 @@ export default {
     },
 
     ticketIcon(ticketType) {
-      return ticketType === "basic"
-        ? basicImg
-        : ticketType === "standard" ? standardImg : plusImg;
+      return ticketType === "basic" ? basicImg : ticketType === "standard" ? standardImg : plusImg;
     }
   },
 
@@ -78,7 +76,7 @@ export default {
       return moment(date).format("YYYY MMMM Do");
     },
     time(date) {
-      return moment(date).format("hh:mm");
+      return moment(date).format("HH:mm");
     }
   }
 };

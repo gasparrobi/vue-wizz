@@ -12,8 +12,8 @@
           <span class="four sp"></span>
           <span class="five sp"></span>
           <span class="item"><i class="fas fa-plane "></i></span>
-          <span class="sixth sp"></span>
-          <span class="seventh sp"></span>
+          <span class="six sp"></span>
+          <span class="seven sp"></span>
           <span class="eight sp"></span>
           <span class="nine sp"></span>
           <span class="ten sp"></span>
@@ -76,12 +76,7 @@ export default {
   align-items: center;
 
   background: #0f0c29; /* fallback for old browsers */
-  background: -webkit-linear-gradient(
-    to right,
-    #24243e,
-    #302b63,
-    #0f0c29
-  ); /* Chrome 10-25, Safari 5.1-6 */
+  background: -webkit-linear-gradient(to right, #24243e, #302b63, #0f0c29); /* Chrome 10-25, Safari 5.1-6 */
   background: linear-gradient(
     to right,
     #24243e,

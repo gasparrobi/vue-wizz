@@ -82,7 +82,7 @@
         />
       </div>
 
-      <flight-summary v-if="selectedOutboundFlight !== null"
+      <flight-summary v-if="selectedOutboundFlight !== null && originSelected !== null"
         :outBoundFlight="selectedOutboundFlight"
         :outBoundTicketId="selectedOutboundTicketId"
         :returnFlight="selectedReturnFlight"
@@ -94,7 +94,13 @@
     
 		</div> <!-- LEFT END -->
 
-		<div class="right" v-if="outBoundFlights.length > 0 && resultsActive" >
+    <flight-map 
+      v-if="!showResults"
+      :originS="this.originSelected"
+      :destinationS="this.destinationSelected"
+    />
+
+		<div class="right" v-if="outBoundFlights.length > 0 && showResults" >
 
       <flight-list-header
         :origin="originSelected"
@@ -109,7 +115,7 @@
 			v-on:outBoundFlight="outboundFlightSelected"
 			/>
 
-      <div v-if="returnFlights.length > 0 && resultsActive">
+      <div v-if="returnFlights.length > 0 && showResults">
         <flight-list-header
           :origin="destinationSelected"
           :destination="originSelected"
@@ -137,6 +143,7 @@ import FlightService from "../services/flightService.js";
 import FlightList from "./FlightList.vue";
 import FlightListHeader from "./FlightListHeader.vue";
 import FlightSummary from "./FlightSummary.vue";
+import FlightMap from "./FlightMap.vue";
 import moment from "moment";
 
 export default {
@@ -147,7 +154,8 @@ export default {
   components: {
     "flight-list": FlightList,
     "flight-list-header": FlightListHeader,
-    "flight-summary": FlightSummary
+    "flight-summary": FlightSummary,
+    "flight-map": FlightMap
   },
 
   beforeCreate() {
@@ -178,7 +186,7 @@ export default {
         }
       },
       loading: false,
-      resultsActive: false,
+      showResults: false,
 
       //for flight results
       outBoundFlights: [],
@@ -199,15 +207,19 @@ export default {
       } else {
         this.errors.originSelectedError = false;
       }
-      this.resultsActive = false;
+      this.showResults = false;
+      this.destinationSelected = null;
+      this.resetSummary();
     },
 
     destinationSelected(val) {
       localStorage.setItem("destinationSelected", JSON.stringify(this.destinationSelected));
       if (val !== null) {
         this.errors.destinationSelectedError = false;
+      } else {
       }
-      this.resultsActive = false;
+      this.showResults = false;
+      this.resetSummary();
     },
 
     departureDate(val) {
@@ -216,11 +228,14 @@ export default {
       } else {
         this.errors.departureDateError = false;
       }
-      this.resultsActive = false;
+      this.showResults = false;
+      this.resetSummary();
     },
 
     returnDate(val) {
-      this.resultsActive = false;
+      this.showResults = false;
+      this.returnFlights = [];
+      this.resetSummary();
     }
   },
 
@@ -232,7 +247,7 @@ export default {
 
       if (!this.validateForm() || this.loading) return;
       this.loading = true;
-      this.resultsActive = true;
+      this.showResults = true;
 
       try {
         this.outBoundFlights = await this.flightService.searchFlights(
@@ -267,6 +282,13 @@ export default {
 
     validateForm() {
       return this.originSelected !== null && this.destinationSelected !== null && this.departureDate !== null;
+    },
+
+    resetSummary() {
+      this.selectedOutboundFlight = null;
+      this.selectedReturnFlight = null;
+      this.selectedOutboundTicketId = null;
+      this.selectedReturnTicketId = null;
     }
   },
 
