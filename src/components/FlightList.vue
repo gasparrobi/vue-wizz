@@ -37,9 +37,7 @@ export default {
   },
 
   created() {
-    this.flights = this.flights.sort((a, b) => {
-      a.departure > b.departure ? 1 : a.departure < b.departure ? -1 : 0;
-    });
+    this.flights = this.flights.sort((a, b) => (a.departure > b.departure ? 1 : a.departure < b.departure ? -1 : 0));
   },
 
   data() {

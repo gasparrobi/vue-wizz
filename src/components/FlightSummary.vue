@@ -1,6 +1,6 @@
 <template>
     <div class="summary-wrapper">
-			<span class="summary-title">Summary</span>
+			<span class="summary-title">Your tickets</span>
 			<div class="summary-item">
 
 				<div class="date-and-place">

@@ -26,12 +26,12 @@ export default {
     try {
       this.setOriginMarker(this.originS.longitude, this.originS.latitude);
     } catch (error) {
-      console.log("origin not arrived yet");
+      // origin data hasn't arrived
     }
     try {
       this.setDestinationMarker(this.destinationS.longitude, this.destinationS.latitude);
     } catch (error) {
-      console.log("destination not arrived yet");
+      // destination data hasn't arrived
     }
   },
 
