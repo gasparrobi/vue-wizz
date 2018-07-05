@@ -1,8 +1,6 @@
 <template>
-	<div class='main-wrapper'>
-
-		<div class="left">
-
+    <div class='main-wrapper'>
+        <div class="left">
       <div class="flight-search">
           <div class="select-wrapper">
           <h5>Origin</h5>
@@ -38,7 +36,6 @@
         <div class="datepicker-section">
           <!-- DEPARTURE DATEPICKER -->
           <div class="datepicker-item">
-
             <h5>Departure</h5>
             <datepicker 
               class='vue-datepicker'
@@ -55,7 +52,7 @@
           </div>
           
           <!-- RETURN DATEPICKER -->
-          <div class="datepicker-item">
+          <div class="datepicker-item" >
             <h5>Return</h5>
             <datepicker 
               class='vue-datepicker'
@@ -78,10 +75,9 @@
           type="submit"
           @click="submitForm"
           :value="searchButtonTitle"
-          v-bind:class="{loading: loading}"
+          v-bind:class="{loadingResults: loadingResults}"
         />
       </div>
-
       <flight-summary v-if="selectedOutboundFlight !== null && originSelected !== null"
         :outBoundFlight="selectedOutboundFlight"
         :outBoundTicketId="selectedOutboundTicketId"
@@ -92,36 +88,45 @@
         />
       
     
-		</div> <!-- LEFT END -->
-
+        </div> <!-- LEFT END -->
     <flight-map 
       v-if="!showResults"
       :originS="this.originSelected"
       :destinationS="this.destinationSelected"
     />
-
-		<div class="right" v-if="outBoundFlights.length > 0 && showResults" >
-
+        <div class="right" v-if="outBoundFlights.length > 0 && showResults" >
       <flight-list-header
         :origin="originSelected"
         :destination="destinationSelected"
         :flightDate="departureDate"
       />
-
-			<flight-list 
-			:flights="outBoundFlights"
+            <flight-list 
+            :flights="outBoundFlights"
       :flightType="'outBoundFlight'"
-			v-model="selectedOutboundFlight"
-			v-on:outBoundFlight="outboundFlightSelected"
-			/>
-
-      <div v-if="returnFlights.length > 0 && showResults">
+            v-model="selectedOutboundFlight"
+            v-on:outBoundFlight="outboundFlightSelected"
+            />
+      <div class="extra-datepicker-item" v-if="showResults && !extraReturnDate && !returnDate">
+        <h5>Return</h5>
+        <datepicker 
+          class='vue-datepicker'
+          :disabled="returnDateDisabled"
+          format="yyyy-MM-dd"
+          :placeholder="returnPlaceholder"
+          monday-first
+          :disabledDates="returnDateFromValue"
+          clear-button
+          v-on:selected="extraReturnSubmit"
+        >
+          <span slot="afterDateInput" class="animated-placeholder"></span>
+        </datepicker>
+      </div>
+      <div v-if="returnFlights.length > 0 && showResults && (extraReturnDate || returnDate)">
         <flight-list-header
           :origin="destinationSelected"
           :destination="originSelected"
-          :flightDate="returnDate"
+          :flightDate="returnDate || extraReturnDate"
         />
-
         <flight-list 
           :flights="returnFlights"
           :flightType="'returnFlight'"
@@ -130,14 +135,10 @@
         />
       </div>
       
-
-		</div>
-
-		
-
-	</div>
+        </div>
+        
+    </div>
 </template>
-
 <script>
 import FlightService from "../services/flightService.js";
 import FlightList from "./FlightList.vue";
@@ -145,28 +146,23 @@ import FlightListHeader from "./FlightListHeader.vue";
 import FlightSummary from "./FlightSummary.vue";
 import FlightMap from "./FlightMap.vue";
 import moment from "moment";
-
 export default {
   name: "FlightSelector",
   flightService: null,
   props: {},
-
   components: {
     "flight-list": FlightList,
     "flight-list-header": FlightListHeader,
     "flight-summary": FlightSummary,
     "flight-map": FlightMap
   },
-
   beforeCreate() {
     this.flightService = new FlightService();
   },
-
   async mounted() {
     const response = await this.flightService.getFlights();
     this.flightData = response.data;
   },
-
   data() {
     return {
       // for searching
@@ -180,25 +176,23 @@ export default {
       destinationSelected: JSON.parse(localStorage.getItem("destinationSelected")) || null,
       departureDate: null,
       returnDate: null,
+      extraReturnDate: null,
       datePickerConfig: {
         disabledDates: {
           to: new Date(Date.now() - 60000)
         }
       },
-      loading: false,
+      loadingResults: false,
       showResults: false,
-
       //for flight results
       outBoundFlights: [],
       returnFlights: [],
-
       selectedOutboundFlight: null,
       selectedReturnFlight: null,
       selectedOutboundTicketId: null,
       selectedReturnTicketId: null
     };
   },
-
   watch: {
     originSelected(val) {
       localStorage.setItem("originSelected", JSON.stringify(this.originSelected));
@@ -209,7 +203,7 @@ export default {
       }
       this.showResults = false;
       this.destinationSelected = null;
-      this.resetSummary();
+      this.resetSelectedFlightData();
     },
 
     destinationSelected(val) {
@@ -219,43 +213,44 @@ export default {
       } else {
       }
       this.showResults = false;
-      this.resetSummary();
+      this.resetSelectedFlightData();
     },
 
     departureDate(val) {
-      if (val === null) {
-        this.returnDate = null;
-      } else {
+      if (val !== null) {
         this.errors.departureDateError = false;
       }
+      this.returnDate = null;
+      this.extraReturnDate = null;
       this.showResults = false;
-      this.resetSummary();
+      this.resetSelectedFlightData();
     },
 
     returnDate(val) {
       this.showResults = false;
       this.returnFlights = [];
-      this.resetSummary();
+      this.resetSelectedFlightData();
+    },
+
+    extraReturnDate(val) {
+      this.returnDate = null;
     }
   },
-
   methods: {
     async submitForm(e) {
       this.errors.originSelectedError = this.originSelected === null;
       this.errors.destinationSelectedError = this.destinationSelected === null;
       this.errors.departureDateError = this.departureDate === null;
-
-      if (!this.validateForm() || this.loading) return;
-      this.loading = true;
+      if (!this.validateForm() || this.loadingResults) return;
+      this.loadingResults = true;
       this.showResults = true;
-
+      this.extraReturnDate = null;
       try {
         this.outBoundFlights = await this.flightService.searchFlights(
           this.originSelected.iata,
           this.destinationSelected.iata,
           moment(this.departureDate).format("YYYY-MM-DD")
         );
-
         if (this.returnDate !== null) {
           this.returnFlights = await this.flightService.searchFlights(
             this.destinationSelected.iata,
@@ -266,8 +261,18 @@ export default {
       } catch (error) {
         this.$emit("ERROR", "Sorry, we were unable to get results, please try again later");
       }
+      this.loadingResults = false;
+    },
 
-      this.loading = false;
+    async extraReturnSubmit(date) {
+      this.extraReturnDate = date;
+      if (date !== null) {
+        this.returnFlights = await this.flightService.searchFlights(
+          this.destinationSelected.iata,
+          this.originSelected.iata,
+          moment(date).format("YYYY-MM-DD")
+        );
+      }
     },
 
     outboundFlightSelected(message) {
@@ -284,14 +289,13 @@ export default {
       return this.originSelected !== null && this.destinationSelected !== null && this.departureDate !== null;
     },
 
-    resetSummary() {
+    resetSelectedFlightData() {
       this.selectedOutboundFlight = null;
       this.selectedReturnFlight = null;
       this.selectedOutboundTicketId = null;
       this.selectedReturnTicketId = null;
     }
   },
-
   computed: {
     originFiltered() {
       return this.flightData.filter(flight => {
@@ -338,12 +342,11 @@ export default {
     },
 
     searchButtonTitle() {
-      return this.loading ? "Searching..." : "Search";
+      return this.loadingResults ? "Searching..." : "Search";
     }
   }
 };
 </script>
-
 <style scoped>
 h3 {
   margin: 40px 0 0;
@@ -359,23 +362,18 @@ li {
 a {
   color: #42b983;
 }
-
 .select-wrapper {
   width: 100%;
 }
-
 .select-wrapper:nth-of-type(2) {
   margin-bottom: 30px;
 }
-
 .vue-datepicker input {
   background: transparent;
 }
-
 .vue-datepicker input::-webkit-input-placeholder {
   opacity: 0.2;
 }
-
 .animated-placeholder::before {
   font-family: "Font Awesome 5 Free";
   font-weight: 700;
@@ -384,45 +382,42 @@ a {
   top: 9px;
   position: absolute;
 }
-
 .main-wrapper {
   display: flex;
+  height: 100vh;
+  padding-top: 20px;
   /* padding: 20px; */
 }
-
 .left {
   display: flex;
   flex-direction: column;
   min-width: 320px;
   width: 320px;
 }
-
 .flight-search {
   display: flex;
   justify-content: center;
   width: 100%;
-  max-height: 415px;
+  min-height: 415px;
+  height: 415px;
   padding: 20px;
   flex-direction: column;
   align-items: flex-start;
   background-color: #fff;
   box-shadow: 0px 0px 13px 3px rgba(0, 0, 0, 0.05);
 }
-
 .datepicker-section {
   width: 100%;
   display: flex;
   justify-content: space-between;
   margin-bottom: 60px;
 }
-
 h5 {
   margin-bottom: 7px;
   padding-left: 1px;
   color: rgba(198, 0, 126, 1);
   font-weight: 700;
 }
-
 #search-submit {
   width: 100%;
   height: 36px;
@@ -436,79 +431,31 @@ h5 {
   cursor: pointer;
   transition: 200ms all;
 }
-
 #search-submit:focus {
   outline: none;
 }
-
 #search-submit:hover {
   background: rgba(198, 0, 126, 0.7);
 }
-
 .error-span {
   position: absolute;
   font-size: 11px;
   color: rgb(255, 0, 0);
   font-weight: 700;
 }
-
 .right {
   padding-left: 20px;
   padding-right: 20px;
   animation: section-fade-in 500ms forwards;
   overflow-y: scroll;
-  max-height: calc(100vh - 20px);
+  max-height: 100%;
 }
-
 @keyframes section-fade-in {
   0% {
     opacity: 0;
   }
-
   100% {
     opacity: 1;
-  }
-}
-
-.loader,
-.loader:after {
-  border-radius: 50%;
-  width: 15px;
-  height: 15px;
-}
-.loader {
-  margin: 0px auto;
-  font-size: 10px;
-  position: relative;
-  text-indent: -9999em;
-  border-top: 4px solid rgba(255, 255, 255, 0.2);
-  border-right: 4px solid rgba(255, 255, 255, 0.2);
-  border-bottom: 4px solid rgba(255, 255, 255, 0.2);
-  border-left: 4px solid #ffffff;
-  -webkit-transform: translateZ(0);
-  -ms-transform: translateZ(0);
-  transform: translateZ(0);
-  -webkit-animation: load8 1.1s infinite linear;
-  animation: load8 1.1s infinite linear;
-}
-@-webkit-keyframes load8 {
-  0% {
-    -webkit-transform: rotate(0deg);
-    transform: rotate(0deg);
-  }
-  100% {
-    -webkit-transform: rotate(360deg);
-    transform: rotate(360deg);
-  }
-}
-@keyframes load8 {
-  0% {
-    -webkit-transform: rotate(0deg);
-    transform: rotate(0deg);
-  }
-  100% {
-    -webkit-transform: rotate(360deg);
-    transform: rotate(360deg);
   }
 }
 </style>
